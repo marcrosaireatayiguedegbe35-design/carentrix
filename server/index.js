@@ -1,4 +1,4 @@
-// Petit service d'inscription : envoie un code à 6 chiffres par Gmail SMTP
+// Petit service d'inscription : envoie un code à 6 chiffres par l'API Brevo
 // (mot de passe temporaire) puis crée/met à jour le compte Supabase.
 //
 // Vit en dehors de Supabase Edge Functions (Deno Deploy) exprès : cette
@@ -8,39 +8,72 @@
 //
 // Variables d'environnement requises :
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-//   + BREVO_API_KEY et MAIL_FROM (recommandé) OU GMAIL_USER et GMAIL_APP_PASSWORD
+//   + BREVO_API_KEY et MAIL_FROM (adresse expéditeur vérifiée dans Brevo)
+//   Optionnel : CORS_ORIGINS (origines autorisées, séparées par des virgules)
 
 const express = require("express");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.set("trust proxy", 1); // Render est derrière un proxy : IP client fiable pour la limitation
+app.disable("x-powered-by");
 
-function genererCode() {
-  const n = Math.floor(Math.random() * 1_000_000);
-  return String(n).padStart(6, "0");
+// CORS restreint aux origines du site (variable CORS_ORIGINS : liste séparée par des virgules).
+const ORIGINES_AUTORISEES = (
+  process.env.CORS_ORIGINS ||
+  "https://carentrix.pages.dev,https://carentrix.com,https://www.carentrix.com,http://localhost:5173,capacitor://localhost,https://localhost,http://localhost"
+)
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(
+  cors({
+    origin(origine, cb) {
+      // Pas d'en-tête Origin (curl, serveur à serveur) : autorisé côté CORS, la limitation de débit s'applique quand même.
+      if (!origine || ORIGINES_AUTORISEES.includes(origine)) return cb(null, true);
+      return cb(null, false);
+    },
+  })
+);
+app.use(express.json({ limit: "10kb" }));
+
+// Limitation de débit en mémoire (suffisant pour une instance unique).
+const compteurs = new Map();
+function limite(cle, max, fenetreMs) {
+  const maintenant = Date.now();
+  const entree = compteurs.get(cle);
+  if (!entree || entree.fin < maintenant) {
+    compteurs.set(cle, { n: 1, fin: maintenant + fenetreMs });
+    return true;
+  }
+  entree.n += 1;
+  return entree.n <= max;
+}
+setInterval(() => {
+  const maintenant = Date.now();
+  for (const [cle, v] of compteurs) if (v.fin < maintenant) compteurs.delete(cle);
+}, 60_000).unref();
+
+function echapperHtml(texte) {
+  return String(texte)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function creerTransporteur() {
-  const gmailUser = (process.env.GMAIL_USER || "").trim();
-  const gmailPassword = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
-  if (!gmailUser || !gmailPassword) {
-    throw new Error("config_gmail_manquante");
-  }
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: gmailUser, pass: gmailPassword },
-  });
+function genererCode() {
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 }
 
 function contenuEmail({ nom, code }) {
   return `
-      <p>Bonjour ${nom},</p>
+      <p>Bonjour ${echapperHtml(nom)},</p>
       <p>Voici votre code de vérification Carentrix :</p>
       <p style="font-size:1.8em;font-weight:bold;letter-spacing:6px;">${code}</p>
       <p>Saisissez ce code dans l'application pour activer votre compte, puis choisissez
@@ -74,20 +107,9 @@ async function envoyerCodeBrevo({ destinataire, nom, code }) {
   }
 }
 
-async function envoyerCodeGmail({ destinataire, nom, code }) {
-  const gmailUser = process.env.GMAIL_USER.trim();
-  const transporteur = creerTransporteur();
-  await transporteur.sendMail({
-    from: `Carentrix <${gmailUser}>`,
-    to: destinataire,
-    subject: "Votre code Carentrix",
-    html: contenuEmail({ nom, code }),
-  });
-}
-
 async function envoyerCode(args) {
-  if (process.env.BREVO_API_KEY) return envoyerCodeBrevo(args);
-  return envoyerCodeGmail(args);
+  if (!process.env.BREVO_API_KEY) throw new Error("config_brevo_manquante");
+  return envoyerCodeBrevo(args);
 }
 
 function messageErreurEmail(erreur) {
@@ -101,22 +123,28 @@ function messageErreurEmail(erreur) {
   if (texte.includes("config_expediteur_manquante")) {
     return "Expéditeur manquant (MAIL_FROM).";
   }
-  if (texte.includes("config_gmail_manquante")) {
-    return "Configuration Gmail manquante (GMAIL_USER / GMAIL_APP_PASSWORD).";
-  }
-  if (texte.includes("Daily user sending limit") || texte.includes("5.4.5")) {
-    return "Limite d'envoi Gmail atteinte pour aujourd'hui. Réessayez demain.";
-  }
-  if (texte.includes("Invalid login") || texte.includes("Username and Password not accepted") || texte.includes("535")) {
-    return "Identifiants Gmail invalides. Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD.";
+  if (texte.includes("config_brevo_manquante")) {
+    return "Configuration d'envoi d'email manquante (BREVO_API_KEY).";
   }
   return "L'envoi du code par email a échoué. Veuillez réessayer.";
 }
 
 async function trouverUtilisateurParEmail(supabaseAdmin, emailNorm) {
-  const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (error) throw error;
-  return data.users.find((u) => (u.email || "").toLowerCase() === emailNorm) || null;
+  const parPage = 1000;
+  for (let page = 1; page <= 100; page++) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: parPage });
+    if (error) throw error;
+    const trouve = data.users.find((u) => (u.email || "").toLowerCase() === emailNorm);
+    if (trouve) return trouve;
+    if (data.users.length < parPage) return null;
+  }
+  return null;
+}
+
+// Un compte « en attente » n'a pas encore choisi son mot de passe : seul ce cas
+// autorise l'envoi d'un nouveau code. Un compte actif (ou le garage) n'est JAMAIS modifié.
+function estEnAttente(utilisateur) {
+  return !!(utilisateur && utilisateur.user_metadata && utilisateur.user_metadata.doit_changer_mot_de_passe === true);
 }
 
 app.get("/", (_req, res) => res.json({ ok: true, service: "carentrix-mailer" }));
@@ -128,8 +156,17 @@ app.post("/inscription", async (req, res) => {
   const telephoneNorm = (telephone || "").trim();
   const roleNorm = role || "";
 
-  if (!emailNorm) {
-    return res.status(400).json({ erreur: "Email requis." });
+  if (!emailNorm || emailNorm.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+    return res.status(400).json({ erreur: "Email invalide." });
+  }
+  if (nomNorm.length > 100 || telephoneNorm.length > 30) {
+    return res.status(400).json({ erreur: "Données trop longues." });
+  }
+
+  // Limitation de débit : par IP et par email (évite l'envoi massif et le brute-force).
+  const ip = req.ip || "inconnue";
+  if (!limite(`ip:${ip}`, 15, 15 * 60_000) || !limite(`email:${emailNorm}`, 3, 15 * 60_000)) {
+    return res.status(429).json({ erreur: "Trop de tentatives. Réessayez dans quelques minutes." });
   }
 
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -150,8 +187,12 @@ app.post("/inscription", async (req, res) => {
     return res.status(500).json({ erreur: "Impossible de vérifier le compte." });
   }
 
-  if (estRenvoi && !utilisateur) {
-    return res.status(400).json({ erreur: "Aucun compte en attente pour cet email." });
+  if (estRenvoi && !estEnAttente(utilisateur)) {
+    // Réponse neutre : ne révèle pas si le compte existe et ne touche jamais un compte actif.
+    return res.json({ ok: true, renvoi: true });
+  }
+  if (!estRenvoi && utilisateur && !estEnAttente(utilisateur)) {
+    return res.status(400).json({ erreur: "Un compte existe déjà avec cet email. Connectez-vous." });
   }
 
   const code = genererCode();
@@ -196,7 +237,7 @@ app.post("/inscription", async (req, res) => {
   if (erreurCreation || !cree.user) {
     if (erreurCreation && erreurCreation.message && erreurCreation.message.includes("already been registered")) {
       const existant = await trouverUtilisateurParEmail(supabaseAdmin, emailNorm);
-      if (existant) {
+      if (existant && estEnAttente(existant)) {
         const { error: erreurMaj } = await supabaseAdmin.auth.admin.updateUserById(existant.id, {
           password: code,
           email_confirm: true,

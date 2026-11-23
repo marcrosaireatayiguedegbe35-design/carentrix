@@ -1,0 +1,10 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(self), payment=(self)
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-NeBgn9W1pzYqDSbqHzg47w+IiB4ZqsnV2DcT7ffe1Ko=' https://cdn.fedapay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://carentrix-mailer.onrender.com https://*.fedapay.com; frame-src https://*.fedapay.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
