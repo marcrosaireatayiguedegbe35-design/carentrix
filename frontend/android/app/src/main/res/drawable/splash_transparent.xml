@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icone vide pour l'ecran de demarrage systeme Android 12+ : cette API force
+     un masquage circulaire (ou selon la forme d'icone de l'appareil) sur
+     n'importe quel drawable fourni ici, y compris notre logo carre. On la
+     laisse donc transparente et on affiche le vrai logo (non masque) juste
+     apres via le plugin JS Capacitor SplashScreen (drawable/splash.png). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <size android:width="1dp" android:height="1dp" />
+</shape>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Carentrix</string>
+    <string name="title_activity_main">Carentrix</string>
+    <string name="package_name">bj.carentrix.app</string>
+    <string name="custom_url_scheme">bj.carentrix.app</string>
+</resources>

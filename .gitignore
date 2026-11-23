@@ -1,0 +1,36 @@
+# Dependencies & build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Env secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# APK locaux (rebuild via npm run mobile:build)
+*.apk
+
+# Compte de test avec mot de passe en clair : ne jamais versionner
+supabase/seed_locataire_test.sql

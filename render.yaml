@@ -1,0 +1,47 @@
+# Blueprint Render — frontend Carentrix (SPA Vite + React) + service d'inscription
+# Doc : https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: safesteer
+    runtime: static
+    repo: https://github.com/marcrosaire2-hue/safesteer
+    branch: main
+    buildCommand: cd frontend && npm ci --include=dev && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_FEDAPAY_PUBLIC_KEY
+        sync: false
+      - key: VITE_INSCRIPTION_API_URL
+        sync: false
+      - key: NODE_VERSION
+        value: "22.12.0"
+
+  # Service d'envoi du code d'inscription par Gmail SMTP. Séparé de Supabase
+  # Edge Functions (Deno Deploy) car cette plateforme bloque le SMTP sortant.
+  - type: web
+    name: safesteer-mailer
+    runtime: node
+    repo: https://github.com/marcrosaire2-hue/safesteer
+    branch: main
+    rootDir: server
+    buildCommand: npm ci --include=dev
+    startCommand: npm start
+    envVars:
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NODE_VERSION
+        value: "22.12.0"
