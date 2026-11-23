@@ -75,3 +75,29 @@ export function IconeFlecheDroite({ className }: IconeProps) {
     </svg>
   );
 }
+
+export function IconeUtilisateur({ className }: IconeProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 20.5c1-3.8 4-5.5 7.5-5.5s6.5 1.7 7.5 5.5" />
+    </svg>
+  );
+}
+
+export function IconeTelephone({ className }: IconeProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M6.6 3.5h2.7l1.4 4-1.9 1.3a11 11 0 0 0 5.9 5.9l1.3-1.9 4 1.4v2.7a2 2 0 0 1-2.2 2A15.5 15.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" />
+    </svg>
+  );
+}
+
+export function IconeCle({ className }: IconeProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="m11 12 8.5-8.5M16 7l3 3M14 9l2 2" />
+    </svg>
+  );
+}

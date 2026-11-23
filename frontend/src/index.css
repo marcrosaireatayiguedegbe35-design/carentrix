@@ -15197,3 +15197,231 @@ button.garage-doc {
   .bottom-nav-item { padding: 0.55rem 0.4rem; }
   .bottom-nav-item-actif { flex: 2.6 1 0; }
 }
+
+/* ============================================================
+   Authentification claire (connexion) — champs en pilule
+   ============================================================ */
+.ac-page {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: #ffffff;
+  padding: calc(var(--safe-top) + 24px) 24px calc(var(--safe-bottom) + 24px);
+  box-sizing: border-box;
+}
+
+.ac-fermer {
+  position: absolute;
+  top: calc(var(--safe-top) + 18px);
+  left: 18px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--texte);
+  text-decoration: none;
+}
+
+.ac-fermer:hover {
+  background: rgba(26, 18, 21, 0.06);
+}
+
+.ac-colonne {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  animation: auth-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ac-logo {
+  display: block;
+  height: 72px;
+  width: auto;
+  margin: 0 auto 28px;
+  object-fit: contain;
+}
+
+.ac-titre {
+  margin: 0 0 36px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--texte);
+}
+
+.ac-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ac-champ {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 18px;
+  font-size: 1rem;
+  font-weight: 400;
+  border-radius: 999px;
+  background: #ece7e8;
+  box-shadow: 0 3px 8px rgba(60, 10, 20, 0.08);
+  color: #7a6d72;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.ac-champ:focus-within {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px var(--rouge), 0 6px 14px rgba(229, 9, 20, 0.12);
+  color: var(--rouge);
+}
+
+.ac-icone {
+  flex: none;
+}
+
+.ac-champ input,
+.ac-champ input:focus {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--texte);
+}
+
+.ac-champ input::placeholder {
+  color: #7a6d72;
+}
+
+.ac-oeil {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ac-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ac-oublie {
+  margin: -2px 6px 6px;
+  text-align: right;
+  font-size: 0.88rem;
+}
+
+.ac-oublie a,
+.ac-pied a {
+  color: var(--texte);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ac-erreur {
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--rouge-clair);
+  color: #a50d16;
+  font-size: 0.9rem;
+}
+
+.ac-bouton,
+.ac-bouton {
+  border: 0;
+  background: var(--rouge-degrade);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.28);
+}
+
+.ac-bouton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(229, 9, 20, 0.34);
+}
+
+.ac-bouton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.ac-pied {
+  margin: 36px 0 0;
+  text-align: center;
+  color: var(--texte);
+  font-size: 1rem;
+}
+
+.ac-sous-titre {
+  margin: -22px 0 28px;
+  text-align: center;
+  color: var(--texte-secondaire);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.ac-info {
+  margin: 0;
+  text-align: center;
+  color: #1f7a3a;
+  font-size: 0.9rem;
+}
+
+.ac-actions-texte {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 0;
+  color: var(--texte-secondaire);
+}
+
+.ac-actions-texte button,
+.ac-actions-texte button:hover:not(:disabled) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--texte);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@media (min-width: 720px) {
+  .ac-page {
+    align-items: center;
+  }
+}

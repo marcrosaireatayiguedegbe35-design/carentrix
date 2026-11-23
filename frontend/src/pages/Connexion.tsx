@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthSombre } from "../components/AuthSombre";
-import { IconeOeil, IconeOeilBarre } from "../components/IconesAuth";
+import { AuthClair } from "../components/AuthClair";
+import { IconeCadenas, IconeEmail, IconeOeil, IconeOeilBarre } from "../components/IconesAuth";
 import { useAuth } from "../context/AuthContext";
 import { effacerInscriptionEnCours } from "../lib/inscriptionEnCours";
 import { kycBloqueActivite } from "../lib/kyc";
@@ -48,10 +48,24 @@ export function Connexion() {
   }
 
   return (
-    <AuthSombre onglet="connexion">
-      <form className="as-form" onSubmit={soumettre}>
-        <label className="as-champ">
-          <span className="as-sr">E-mail</span>
+    <AuthClair
+      titre={
+        <>
+          Content de vous revoir
+          <br />
+          Prenez le volant
+        </>
+      }
+      pied={
+        <>
+          Pas encore de compte ? <Link to="/inscription">S&apos;inscrire</Link>
+        </>
+      }
+    >
+      <form className="ac-form" onSubmit={soumettre}>
+        <label className="ac-champ">
+          <IconeEmail className="ac-icone" />
+          <span className="ac-sr">E-mail</span>
           <input
             type="email"
             value={email}
@@ -62,8 +76,9 @@ export function Connexion() {
           />
         </label>
 
-        <label className="as-champ">
-          <span className="as-sr">Mot de passe</span>
+        <label className="ac-champ">
+          <IconeCadenas className="ac-icone" />
+          <span className="ac-sr">Mot de passe</span>
           <input
             type={voirMdp ? "text" : "password"}
             value={motDePasse}
@@ -74,7 +89,7 @@ export function Connexion() {
           />
           <button
             type="button"
-            className="as-oeil"
+            className="ac-oeil"
             onClick={() => setVoirMdp((v) => !v)}
             aria-pressed={voirMdp}
             aria-label={voirMdp ? "Masquer le mot de passe" : "Afficher le mot de passe"}
@@ -83,20 +98,20 @@ export function Connexion() {
           </button>
         </label>
 
-        <p className="as-oublie">
+        <p className="ac-oublie">
           <Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
         </p>
 
-        {erreur && <p className="as-erreur">{erreur}</p>}
+        {erreur && (
+          <p className="ac-erreur" role="alert">
+            {erreur}
+          </p>
+        )}
 
-        <button type="submit" className="as-bouton" disabled={chargement} aria-busy={chargement}>
+        <button type="submit" className="ac-bouton" disabled={chargement} aria-busy={chargement}>
           {chargement ? "Connexion..." : "Se connecter"}
         </button>
-
-        <Link to="/vehicules" className="as-lien-catalogue">
-          Continuer vers le catalogue
-        </Link>
       </form>
-    </AuthSombre>
+    </AuthClair>
   );
 }

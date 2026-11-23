@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthSombre } from "../components/AuthSombre";
+import { AuthClair } from "../components/AuthClair";
+import { IconeCle, IconeEmail, IconeTelephone, IconeUtilisateur } from "../components/IconesAuth";
 import { useAuth } from "../context/AuthContext";
 import {
   effacerInscriptionEnCours,
@@ -74,14 +75,20 @@ export function Inscription() {
 
   if (etape === "code") {
     return (
-      <AuthSombre
-        onglet="inscription"
-        titreEtape="Vérifier votre email"
+      <AuthClair
+        titre={
+          <>
+            Vérifiez votre email
+            <br />
+            Saisissez le code
+          </>
+        }
         sousTitre={`Un code à 6 chiffres a été envoyé à ${email}.`}
       >
-        <form className="as-form" onSubmit={soumettreCode}>
-          <label className="as-champ">
-            <span className="as-sr">Code reçu</span>
+        <form className="ac-form" onSubmit={soumettreCode}>
+          <label className="ac-champ">
+            <IconeCle className="ac-icone" />
+            <span className="ac-sr">Code reçu</span>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -93,14 +100,18 @@ export function Inscription() {
             />
           </label>
 
-          {infoRenvoi && <p className="as-info">{infoRenvoi}</p>}
-          {erreur && <p className="as-erreur">{erreur}</p>}
+          {infoRenvoi && <p className="ac-info">{infoRenvoi}</p>}
+          {erreur && (
+            <p className="ac-erreur" role="alert">
+              {erreur}
+            </p>
+          )}
 
-          <button type="submit" className="as-bouton" disabled={chargement || code.length < 6}>
+          <button type="submit" className="ac-bouton" disabled={chargement || code.length < 6}>
             {chargement ? "Vérification…" : "Valider le code"}
           </button>
 
-          <p className="as-actions-texte">
+          <p className="ac-actions-texte">
             <button type="button" onClick={() => void renvoyer()} disabled={chargement}>
               Renvoyer le code
             </button>
@@ -118,15 +129,29 @@ export function Inscription() {
             </button>
           </p>
         </form>
-      </AuthSombre>
+      </AuthClair>
     );
   }
 
   return (
-    <AuthSombre onglet="inscription">
-      <form className="as-form" onSubmit={soumettreFormulaire}>
-        <label className="as-champ">
-          <span className="as-sr">Nom complet</span>
+    <AuthClair
+      titre={
+        <>
+          Rejoignez Carentrix
+          <br />
+          Faites le premier pas
+        </>
+      }
+      pied={
+        <>
+          Vous avez déjà un compte ? <Link to="/connexion">Se connecter</Link>
+        </>
+      }
+    >
+      <form className="ac-form" onSubmit={soumettreFormulaire}>
+        <label className="ac-champ">
+          <IconeUtilisateur className="ac-icone" />
+          <span className="ac-sr">Nom complet</span>
           <input
             value={nom}
             onChange={(e) => setNom(e.target.value)}
@@ -137,8 +162,9 @@ export function Inscription() {
           />
         </label>
 
-        <label className="as-champ">
-          <span className="as-sr">Téléphone</span>
+        <label className="ac-champ">
+          <IconeTelephone className="ac-icone" />
+          <span className="ac-sr">Téléphone</span>
           <input
             value={telephone}
             onChange={(e) => setTelephone(e.target.value)}
@@ -148,8 +174,9 @@ export function Inscription() {
           />
         </label>
 
-        <label className="as-champ">
-          <span className="as-sr">E-mail</span>
+        <label className="ac-champ">
+          <IconeEmail className="ac-icone" />
+          <span className="ac-sr">E-mail</span>
           <input
             type="email"
             value={email}
@@ -160,16 +187,16 @@ export function Inscription() {
           />
         </label>
 
-        {erreur && <p className="as-erreur">{erreur}</p>}
+        {erreur && (
+          <p className="ac-erreur" role="alert">
+            {erreur}
+          </p>
+        )}
 
-        <button type="submit" className="as-bouton" disabled={chargement}>
+        <button type="submit" className="ac-bouton" disabled={chargement}>
           {chargement ? "Envoi du code..." : "Recevoir le code"}
         </button>
-
-        <Link to="/vehicules" className="as-lien-catalogue">
-          Continuer vers le catalogue
-        </Link>
       </form>
-    </AuthSombre>
+    </AuthClair>
   );
 }
