@@ -17,6 +17,7 @@ const LIBELLES_ROLE: Record<Role, string> = {
   PROPRIETAIRE: "Propriétaire",
   GARAGE: "Garage",
   CHAUFFEUR: "Chauffeur",
+  AGENCE: "Agence partenaire",
 };
 
 function initiales(nom: string): string {

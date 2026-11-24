@@ -51,7 +51,7 @@ export interface AvisPublic {
 }
 
 export type RoleInscription = "LOCATAIRE";
-export type Role = "LOCATAIRE" | "GARAGE" | "PROPRIETAIRE" | "CHAUFFEUR";
+export type Role = "LOCATAIRE" | "GARAGE" | "PROPRIETAIRE" | "CHAUFFEUR" | "AGENCE";
 
 export interface Utilisateur {
   id: string;
@@ -90,6 +90,7 @@ export interface DocumentKyc {
 
 export interface VehiculeGarage extends Vehicule {
   controleTechniqueOk: boolean;
+  agenceNom?: string | null;
   proprietaireId: string;
   entrepriseProvenance: string | null;
   coutUnitaire: number | null;

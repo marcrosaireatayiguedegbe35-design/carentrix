@@ -2,7 +2,7 @@ import type { Utilisateur } from "../types";
 
 /** Compte pleinement certifié par le garage. */
 export function kycValide(utilisateur: Utilisateur | null | undefined): boolean {
-  return !!utilisateur && utilisateur.role !== "GARAGE" && utilisateur.statutKyc === "VERIFIE";
+  return !!utilisateur && utilisateur.role !== "GARAGE" && utilisateur.role !== "AGENCE" && utilisateur.statutKyc === "VERIFIE";
 }
 
 /**
@@ -13,6 +13,8 @@ export function kycValide(utilisateur: Utilisateur | null | undefined): boolean 
 export function kycBloqueActivite(utilisateur: Utilisateur | null | undefined): boolean {
   if (!utilisateur) return false;
   if (utilisateur.role === "GARAGE") return false;
+  // Agence : créée et vérifiée par l'administration elle-même.
+  if (utilisateur.role === "AGENCE") return false;
   if (utilisateur.role === "LOCATAIRE") return false;
   return utilisateur.statutKyc !== "VERIFIE";
 }

@@ -20,7 +20,16 @@ export function EntreeRacine() {
 
   if (utilisateur) {
     return (
-      <Navigate to={utilisateur.role === "GARAGE" ? "/garage/tableau-de-bord" : "/vehicules"} replace />
+      <Navigate
+        to={
+          utilisateur.role === "GARAGE"
+            ? "/garage/tableau-de-bord"
+            : utilisateur.role === "AGENCE"
+              ? "/agence/tableau-de-bord"
+              : "/vehicules"
+        }
+        replace
+      />
     );
   }
 

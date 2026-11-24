@@ -33,6 +33,12 @@ import { ReservationDetailGarage } from "./pages/garage/ReservationDetail";
 import { EquipeGarage } from "./pages/garage/Equipe";
 import { JournalLocationsGarage } from "./pages/garage/JournalLocations";
 import { PerformanceGarage } from "./pages/garage/PerformanceGarage";
+import { AgencesGarage } from "./pages/garage/Agences";
+import { TableauDeBordAgence } from "./pages/agence/TableauDeBord";
+import { ModifierVehiculeAgence, NouveauVehiculeAgence, VehiculesAgence } from "./pages/agence/Vehicules";
+import { ReservationsAgence } from "./pages/agence/Reservations";
+import { RevenusAgence } from "./pages/agence/Revenus";
+import { ProfilAgence } from "./pages/agence/Profil";
 
 const ROUTES_SANS_KYC = new Set([
   "/",
@@ -82,8 +88,10 @@ function App() {
     location.pathname === "/mes-informations" ||
     location.pathname === "/notifications" ||
     location.pathname === "/aide-support" ||
-    location.pathname.startsWith("/garage/");
-  const estGarage = location.pathname.startsWith("/garage/");
+    location.pathname.startsWith("/garage/") ||
+    location.pathname.startsWith("/agence/");
+  // Back-offices (administration et agences partenaires) : même habillage.
+  const estGarage = location.pathname.startsWith("/garage/") || location.pathname.startsWith("/agence/");
   const estPaiement = location.pathname.startsWith("/paiement/");
 
   const estOnboardingMobile =
@@ -214,6 +222,24 @@ function App() {
               <Route path="journal" element={<JournalLocationsGarage />} />
               <Route path="performance" element={<PerformanceGarage />} />
               <Route path="equipe" element={<EquipeGarage />} />
+              <Route path="agences" element={<AgencesGarage />} />
+            </Route>
+            <Route
+              path="/agence"
+              element={
+                <RouteProtegee role="AGENCE">
+                  <GarageLayout espace="agence" />
+                </RouteProtegee>
+              }
+            >
+              <Route index element={<Navigate to="tableau-de-bord" replace />} />
+              <Route path="tableau-de-bord" element={<TableauDeBordAgence />} />
+              <Route path="vehicules" element={<VehiculesAgence />} />
+              <Route path="vehicules/nouveau" element={<NouveauVehiculeAgence />} />
+              <Route path="vehicules/:code/modifier" element={<ModifierVehiculeAgence />} />
+              <Route path="reservations" element={<ReservationsAgence />} />
+              <Route path="revenus" element={<RevenusAgence />} />
+              <Route path="profil" element={<ProfilAgence />} />
             </Route>
             <Route path="/proprietaire/*" element={<Navigate to="/" replace />} />
             <Route path="/chauffeur/*" element={<Navigate to="/" replace />} />

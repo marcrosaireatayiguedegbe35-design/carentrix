@@ -32,6 +32,8 @@ export function ChangerMotDePasse() {
         navigate("/vehicules");
       } else if (utilisateur.role === "GARAGE") {
         navigate("/garage/tableau-de-bord");
+      } else if (utilisateur.role === "AGENCE") {
+        navigate("/agence/tableau-de-bord");
       } else if (kycBloqueActivite(utilisateur)) {
         navigate("/mon-dossier");
       } else {

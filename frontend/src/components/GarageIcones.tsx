@@ -101,12 +101,25 @@ export function IconeDeconnexion({ taille = 17 }: IconeProps) {
 }
 
 /** Icône associée à une page de l'espace garage (selon son URL). */
+export function IconeAgence({ taille }: IconeProps) {
+  return (
+    <Svg taille={taille}>
+      <path d="M4 20.5V8.5l8-5 8 5v12" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M2.5 20.5h19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <rect x="9.5" y="13.5" width="5" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="9.5" r="1.3" fill="currentColor" />
+    </Svg>
+  );
+}
+
 export function iconePourChemin(chemin: string) {
-  if (chemin.startsWith("/garage/vehicules")) return IconeVoiture;
-  if (chemin.startsWith("/garage/reservations")) return IconeCalendrier;
-  if (chemin.startsWith("/garage/performance")) return IconePerformance;
-  if (chemin.startsWith("/garage/journal")) return IconePieces;
-  if (chemin.startsWith("/garage/utilisateurs")) return IconeUtilisateurs;
-  if (chemin.startsWith("/garage/equipe")) return IconeEquipe;
+  const sousChemin = chemin.replace(/^\/(garage|agence)/, "");
+  if (sousChemin.startsWith("/vehicules")) return IconeVoiture;
+  if (sousChemin.startsWith("/reservations")) return IconeCalendrier;
+  if (sousChemin.startsWith("/performance") || sousChemin.startsWith("/revenus")) return IconePerformance;
+  if (sousChemin.startsWith("/journal")) return IconePieces;
+  if (sousChemin.startsWith("/utilisateurs")) return IconeUtilisateurs;
+  if (sousChemin.startsWith("/equipe")) return IconeEquipe;
+  if (sousChemin.startsWith("/agences") || sousChemin.startsWith("/profil")) return IconeAgence;
   return IconeTableauDeBord;
 }

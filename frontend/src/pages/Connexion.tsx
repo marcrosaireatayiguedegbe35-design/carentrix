@@ -11,6 +11,7 @@ import type { Utilisateur } from "../types";
 function destinationApresConnexion(profil: Utilisateur) {
   if (profil.doitChangerMotDePasse) return "/changer-mot-de-passe";
   if (profil.role === "GARAGE") return "/garage/tableau-de-bord";
+  if (profil.role === "AGENCE") return "/agence/tableau-de-bord";
   if (profil.role === "LOCATAIRE") return "/vehicules";
   if (kycBloqueActivite(profil)) return "/mon-dossier";
   return "/vehicules";

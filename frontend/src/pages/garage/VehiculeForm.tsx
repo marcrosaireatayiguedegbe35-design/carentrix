@@ -34,9 +34,13 @@ const CATEGORIES: { valeur: Categorie; libelle: string }[] = [
 type VehiculeFormGarageProps = {
   mode: "creation" | "edition";
   codePublic?: string;
+  /** "agence" : formulaire d'une agence partenaire (pas de champs internes, validation admin requise). */
+  espace?: "garage" | "agence";
 };
 
-export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps) {
+export function VehiculeFormGarage({ mode, codePublic, espace = "garage" }: VehiculeFormGarageProps) {
+  const estAgence = espace === "agence";
+  const cheminListe = estAgence ? "/agence/vehicules" : "/garage/vehicules";
   const navigate = useNavigate();
   const { utilisateur } = useAuth();
   const inputPhotoRef = useRef<HTMLInputElement>(null);
@@ -210,8 +214,12 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
         carburant,
         equipements,
         chauffeur_obligatoire: chauffeurObligatoire,
-        entreprise_provenance: entrepriseProvenance.trim() || null,
-        cout_unitaire: coutUnitaire === "" ? null : coutUnitaire,
+        ...(estAgence
+          ? {}
+          : {
+              entreprise_provenance: entrepriseProvenance.trim() || null,
+              cout_unitaire: coutUnitaire === "" ? null : coutUnitaire,
+            }),
         unite_tarif: uniteTarif,
         prix_unitaire: prixUnitaire,
         photos: photosFinales,
@@ -223,16 +231,15 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
           throw new Error("Impossible de modifier ce véhicule. " + error.message);
         }
       } else {
-        const { error } = await supabase.from("vehicules").insert({
-          ...champs,
-          controle_technique_ok: true,
-          disponible: true,
-        });
+        // Agence : le serveur rattache le véhicule à l'agence et le met en attente de validation.
+        const { error } = await supabase
+          .from("vehicules")
+          .insert(estAgence ? { ...champs, disponible: true } : { ...champs, controle_technique_ok: true, disponible: true });
         if (error) {
           throw new Error("Impossible d'enregistrer ce véhicule. " + error.message);
         }
       }
-      navigate("/garage/vehicules");
+      navigate(cheminListe);
     } catch (err) {
       setErreur(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
@@ -244,7 +251,7 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
     return (
       <GarageShell
         titre="Modifier le véhicule"
-        retour={{ to: "/garage/vehicules", libelle: "Parc" }}
+        retour={{ to: cheminListe, libelle: estAgence ? "Mes véhicules" : "Parc" }}
       >
         <p className="garage-etat">Chargement du véhicule…</p>
       </GarageShell>
@@ -253,9 +260,13 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
 
   return (
     <GarageShell
-      titre={mode === "edition" ? "Modifier le véhicule" : "Publier un véhicule"}
-      sousTitre="Tarif tout compris — véhicule livré avec chauffeur."
-      retour={{ to: "/garage/vehicules", libelle: "Parc" }}
+      titre={mode === "edition" ? "Modifier le véhicule" : estAgence ? "Ajouter un véhicule" : "Publier un véhicule"}
+      sousTitre={
+        estAgence
+          ? "Le véhicule apparaîtra au catalogue une fois validé par l'administration Carentrix."
+          : "Tarif tout compris — véhicule livré avec chauffeur."
+      }
+      retour={{ to: cheminListe, libelle: estAgence ? "Mes véhicules" : "Parc" }}
     >
       <form className="depot-layout" onSubmit={soumettre}>
         <div className="depot-col-champs">
@@ -517,6 +528,7 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
             )}
           </section>
 
+          {!estAgence && (
           <section className="depot-section">
             <p className="depot-col-titre">
               4 · Interne <span className="depot-badge-interne">Visible garage uniquement</span>
@@ -547,10 +559,11 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
               votre bénéfice réel sur chaque location de ce véhicule.
             </p>
           </section>
+          )}
 
           <section className="depot-section">
             <p className="depot-col-titre">
-              5 · Tarif {chauffeurObligatoire ? "(chauffeur inclus)" : "(véhicule seul)"}
+              {estAgence ? 4 : 5} · Tarif {chauffeurObligatoire ? "(chauffeur inclus)" : "(véhicule seul)"}
             </p>
             <div className="depot-tarif">
               <div className="depot-tarif-unites" role="group" aria-label="Unité de tarification">
@@ -597,7 +610,9 @@ export function VehiculeFormGarage({ mode, codePublic }: VehiculeFormGarageProps
                 : "Publication…"
               : mode === "edition"
                 ? "Enregistrer les modifications"
-                : "Publier ce véhicule"}
+                : estAgence
+                  ? "Soumettre à validation"
+                  : "Publier ce véhicule"}
           </button>
         </div>
 

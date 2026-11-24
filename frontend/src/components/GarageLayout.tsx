@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   IconeCalendrier,
+  IconeAgence,
   IconeDeconnexion,
   IconeEquipe,
   IconePerformance,
@@ -12,7 +13,12 @@ import {
   IconeVoiture,
 } from "./GarageIcones";
 
-const GROUPES_NAV = [
+type GroupeNav = {
+  titre: string;
+  liens: { to: string; libelle: string; icone: typeof IconeVoiture }[];
+};
+
+const GROUPES_NAV_GARAGE: GroupeNav[] = [
   {
     titre: "Exploitation",
     liens: [
@@ -31,13 +37,36 @@ const GROUPES_NAV = [
   {
     titre: "Gestion",
     liens: [
+      { to: "/garage/agences", libelle: "Agences", icone: IconeAgence },
       { to: "/garage/utilisateurs", libelle: "Clients", icone: IconeUtilisateurs },
       { to: "/garage/equipe", libelle: "Équipe", icone: IconeEquipe },
     ],
   },
 ];
 
-export function GarageLayout() {
+const GROUPES_NAV_AGENCE: GroupeNav[] = [
+  {
+    titre: "Activité",
+    liens: [
+      { to: "/agence/tableau-de-bord", libelle: "Tableau de bord", icone: IconeTableauDeBord },
+      { to: "/agence/vehicules", libelle: "Mes véhicules", icone: IconeVoiture },
+      { to: "/agence/reservations", libelle: "Réservations", icone: IconeCalendrier },
+    ],
+  },
+  {
+    titre: "Finances",
+    liens: [{ to: "/agence/revenus", libelle: "Revenus & transactions", icone: IconePerformance }],
+  },
+  {
+    titre: "Compte",
+    liens: [{ to: "/agence/profil", libelle: "Profil de l'agence", icone: IconeAgence }],
+  },
+];
+
+export function GarageLayout({ espace = "garage" }: { espace?: "garage" | "agence" }) {
+  const estAgence = espace === "agence";
+  const groupesNav = estAgence ? GROUPES_NAV_AGENCE : GROUPES_NAV_GARAGE;
+  const libelleRole = estAgence ? "Agence partenaire" : "Administration";
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,12 +91,12 @@ export function GarageLayout() {
           <img src="/logo-carentrix.png" alt="Carentrix" className="garage-sidebar-logo" />
           <span>
             <strong>Carentrix</strong>
-            <small>Espace agence</small>
+            <small>{estAgence ? "Espace agence" : "Administration"}</small>
           </span>
         </div>
 
-        <nav className="garage-sidebar-nav" aria-label="Navigation agence">
-          {GROUPES_NAV.map((groupe) => (
+        <nav className="garage-sidebar-nav" aria-label={estAgence ? "Navigation agence" : "Navigation administration"}>
+          {groupesNav.map((groupe) => (
             <div key={groupe.titre} className="garage-sidebar-groupe">
               <p className="garage-sidebar-groupe-titre">{groupe.titre}</p>
               {groupe.liens.map(({ to, libelle, icone: Icone }) => (
@@ -93,7 +122,7 @@ export function GarageLayout() {
             </span>
             <div className="garage-sidebar-utilisateur-texte">
               <strong>{utilisateur?.pseudo ?? "Agence"}</strong>
-              <span>Personnel garage</span>
+              <span>{libelleRole}</span>
             </div>
           </div>
           <button
@@ -143,7 +172,7 @@ export function GarageLayout() {
             </span>
             <span className="garage-topbar-utilisateur-texte">
               <strong>{utilisateur?.pseudo ?? "Agence"}</strong>
-              <small>Personnel garage</small>
+              <small>{libelleRole}</small>
             </span>
           </div>
         </header>

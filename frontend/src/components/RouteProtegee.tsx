@@ -5,6 +5,7 @@ import type { Role } from "../types";
 
 function accueilPourRole(role: Role) {
   if (role === "GARAGE") return "/garage/tableau-de-bord";
+  if (role === "AGENCE") return "/agence/tableau-de-bord";
   return "/vehicules";
 }
 

@@ -16,14 +16,14 @@ export function VehiculesGarage() {
   const [vehicules, setVehicules] = useState<VehiculeGarage[]>([]);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string | null>(null);
-  const [filtre, setFiltre] = useState<"tous" | "en_ligne" | "hors_ligne">("tous");
+  const [filtre, setFiltre] = useState<"tous" | "a_valider" | "en_ligne" | "hors_ligne">("tous");
   const [erreurs, setErreurs] = useState<Record<string, string>>({});
 
   async function charger() {
     setChargement(true);
     const { data, error } = await supabase
       .from("vehicules")
-      .select("*")
+      .select("*, agences(nom, est_plateforme)")
       .order("created_at", { ascending: false });
     if (!error) {
       setVehicules(
@@ -41,6 +41,10 @@ export function VehiculesGarage() {
           photos: (v.photos as string[] | null) ?? [],
           disponible: v.disponible as boolean,
           controleTechniqueOk: v.controle_technique_ok as boolean,
+          agenceNom: (() => {
+            const a = v.agences as { nom: string; est_plateforme: boolean } | null;
+            return a && !a.est_plateforme ? a.nom : null;
+          })(),
           entrepriseProvenance: (v.entreprise_provenance as string | null) ?? null,
           coutUnitaire: (v.cout_unitaire as number | null) ?? null,
           zonePriseEnCharge: (v.zone_prise_en_charge as string | null) ?? null,
@@ -88,8 +92,13 @@ export function VehiculesGarage() {
     }
   }
 
+  const enLigne = (v: VehiculeGarage) => v.disponible && v.controleTechniqueOk;
+  const aValider = (v: VehiculeGarage) => v.disponible && !v.controleTechniqueOk;
+  const nbAValider = vehicules.filter(aValider).length;
+
   const listes = vehicules.filter((v) => {
-    if (filtre === "en_ligne") return v.disponible;
+    if (filtre === "a_valider") return aValider(v);
+    if (filtre === "en_ligne") return enLigne(v);
     if (filtre === "hors_ligne") return !v.disponible;
     return true;
   });
@@ -108,6 +117,7 @@ export function VehiculesGarage() {
         {(
           [
             ["tous", "Tous"],
+            ["a_valider", nbAValider > 0 ? `À valider (${nbAValider})` : "À valider"],
             ["en_ligne", "En ligne"],
             ["hors_ligne", "Hors ligne"],
           ] as const
@@ -140,8 +150,8 @@ export function VehiculesGarage() {
           <article key={v.codePublic} className="garage-carte-vehicule">
             <div className="garage-carte-vehicule-media">
               <img src={v.photos[0]} alt="" />
-              <span className={`garage-pastille ${v.disponible ? "is-on" : "is-off"}`}>
-                {v.disponible ? "En ligne" : "Hors ligne"}
+              <span className={`garage-pastille ${enLigne(v) ? "is-on" : "is-off"}`}>
+                {enLigne(v) ? "En ligne" : aValider(v) ? "À valider" : "Hors ligne"}
               </span>
               {v.photos.length > 1 && (
                 <span className="carte-vehicule-nb-photos">{v.photos.length} photos</span>
@@ -154,6 +164,7 @@ export function VehiculesGarage() {
               <p className="garage-meta">
                 {v.codePublic} · {LIBELLES_CATEGORIE[v.categorie]} · {v.annee} · {v.ville}
               </p>
+              {v.agenceNom && <p className="garage-meta garage-meta--interne">Agence · {v.agenceNom}</p>}
               <p className="garage-prix">
                 {v.prixUnitaire.toLocaleString("fr-FR")} FCFA / {v.uniteTarif === "HEURE" ? "h" : "jour"}
               </p>
@@ -169,7 +180,16 @@ export function VehiculesGarage() {
                 </p>
               )}
               <div className="garage-carte-actions">
-                {v.disponible ? (
+                {aValider(v) ? (
+                  <button
+                    type="button"
+                    className="garage-btn garage-btn--principal"
+                    disabled={enCours === v.codePublic}
+                    onClick={() => void basculerDisponible(v.codePublic, true)}
+                  >
+                    Valider et publier
+                  </button>
+                ) : v.disponible ? (
                   <button
                     type="button"
                     className="garage-btn garage-btn--fantome"
